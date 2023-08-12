@@ -1,4 +1,4 @@
-## TON Multifunctional Telegram Bot
+## TON Multifunctional Telegram Bot for Libermall
 
 TON Multifunctional Bot is an indispensable assistant for working with TON. From a convenient crypto wallet to direct integrations with NFT Marketplace and DEX, this bot is designed to bring the power of blockchain and decentralized finance directly into your messenger.
 
