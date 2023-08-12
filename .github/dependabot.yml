@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: "composer" # Указываем, что работаем с зависимостями Composer
+    directory: "/" # Путь к каталогу, в котором находится ваш файл composer.json
+    schedule:
+      interval: "daily" # Насколько часто Dependabot будет проверять обновления. Возможные значения: "daily", "weekly", "monthly"
+    open-pull-requests-limit: 10 # Ограничение на количество открытых пул-реквестов от Dependabot
+    # В случае необходимости, вы можете добавить дополнительные настройки, например, игнорирование определенных пакетов или версий:
+    # ignore:
+    #   - dependency-name: "example-package"
+    #     versions: ["1.x"]
