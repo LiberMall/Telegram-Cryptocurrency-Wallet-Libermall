@@ -15,7 +15,7 @@ if($file = fopen("tm_response.txt", "w+")){
     fclose($file);
 } // end frite to file
 
-define('TOKEN', '6258673787:AAGtrTScNnbqroPPH7yNiF8hmJDJskMpe44');
+define('TOKEN', 'УКАЖИТЕ_ЗДЕСЬ-СВОЙ_КЛЮЧ_TELEGRAM_БОТА');
 
 include "global.php";
 $link = mysqli_connect($hostName, $userName, $password, $databaseName) or die ("Error connect to database");
