@@ -70,22 +70,32 @@ checkInlineQuery();
 if( preg_match("/\/start/i", $data['message']['text'] )){
 
 //register subscriber
-$newrecord = $chat_id."|".addslashes($data['message']['from']['first_name'])." ".addslashes($data['message']['from']['last_name'])."|".addslashes($data['message']['from']['username']);
-if(file_exists('subscribers.php')) include 'subscribers.php';
-if(isset($user) && count($user) > 0){
-	if(!in_array($newrecord, $user)){
-		$towrite = "\$user[] = '".addslashes($newrecord)."';\n";
-
-	}
-}else{
-	$towrite = "\$user[] = '".addslashes($newrecord)."';\n";
-} // end IF-ELSE count($user) > 0
-
-if(isset($towrite) && $towrite != ''){
-	if($file = fopen("subscribers.php", "a+")){
-		fputs($file,$towrite);
-		fclose($file);
-	} // end frite to file
+$subscribersFile = 'subscribers.json';
+$first = isset($data['message']['from']['first_name']) ? $data['message']['from']['first_name'] : '';
+$last = isset($data['message']['from']['last_name']) ? $data['message']['from']['last_name'] : '';
+$usern = isset($data['message']['from']['username']) ? $data['message']['from']['username'] : '';
+$newrecord = [
+        'chat_id' => (int)$chat_id,
+        'name' => trim(filter_var($first." ".$last, FILTER_SANITIZE_FULL_SPECIAL_CHARS)),
+        'username' => trim(filter_var($usern, FILTER_SANITIZE_FULL_SPECIAL_CHARS))
+];
+$subscribers = [];
+if(file_exists($subscribersFile)){
+        $fileData = file_get_contents($subscribersFile);
+        $subscribers = json_decode($fileData, true);
+        if(!is_array($subscribers)) $subscribers = [];
+}
+$exists = false;
+foreach($subscribers as $record){
+        if($record['chat_id'] === $newrecord['chat_id']){
+                $exists = true;
+                break;
+        }
+}
+if(!$exists){
+        $subscribers[] = $newrecord;
+        file_put_contents($subscribersFile, json_encode($subscribers, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+        @chmod($subscribersFile, 0600);
 }
 //register subscriber
 
