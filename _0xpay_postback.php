@@ -8,23 +8,44 @@ $data = json_decode($data, true);
 include 'botdata.php';
 
 include "global.php";
-$link = mysqli_connect($hostName, $userName, $password, $databaseName) or die ("Error connect to database");
+$link = mysqli_connect($hostName, $userName, $password, $databaseName);
+if (!$link) {
+    error_log('DB connection error: ' . mysqli_connect_error());
+    exit();
+}
 mysqli_set_charset($link, "utf8");
 
 include 'func_gen.php';
 
 if($data['status'] == "Done"){
-	$chat_id = $data['meta'];
-	$addedSum = $data['amount'];
+        $chat_id = intval($data['meta']);
+        $addedSum = floatval($data['amount']);
 
-	$str2select = "SELECT * FROM `users` WHERE `chatid`='$chat_id'";
-	$result = mysqli_query($link, $str2select);
-	$row = @mysqli_fetch_object($result);
+        $stmtSel = $link->prepare("SELECT * FROM `users` WHERE `chatid` = ?");
+        if ($stmtSel === false) {
+            error_log('Prepare failed: ' . $link->error);
+            exit();
+        }
+        $stmtSel->bind_param('i', $chat_id);
+        if (!$stmtSel->execute()) {
+            error_log('SQL Error: ' . $stmtSel->error);
+        }
+        $result = $stmtSel->get_result();
+        $row = @mysqli_fetch_object($result);
+        $stmtSel->close();
 
-	$newbalance = $row->tgr_bep20 + $addedSum;
+        $newbalance = $row->tgr_bep20 + $addedSum;
 
-	$str2upd = "UPDATE `users` SET `tgr_bep20`='$newbalance' WHERE `chatid`='$chat_id'";
-	mysqli_query($link, $str2upd);
+        $stmtUpd = $link->prepare("UPDATE `users` SET `tgr_bep20` = ? WHERE `chatid` = ?");
+        if ($stmtUpd === false) {
+            error_log('Prepare failed: ' . $link->error);
+            exit();
+        }
+        $stmtUpd->bind_param('di', $newbalance, $chat_id);
+        if (!$stmtUpd->execute()) {
+            error_log('SQL Error: ' . $stmtUpd->error);
+        }
+        $stmtUpd->close();
 
 	saveTransaction($addedSum, "TGR", "BEP20", "add", 0);
 

@@ -13,8 +13,12 @@ if (empty($data['message']['chat']['id']) AND empty($data['callback_query']['mes
 }
 
 include "global.php";
-$link = mysqli_connect($hostName, $userName, $password, $databaseName) or die ("Error connect to database");
-mysqli_set_charset($link, "utf8");
+$link = mysqli_connect($hostName, $userName, $password, $databaseName);
+if (!$link) {
+    error_log('DB connection error: ' . mysqli_connect_error());
+    exit();
+}
+mysqli_set_charset($link, 'utf8');
 
 include 'botdata.php'; // keys etc.
 include 'func_gen.php';
@@ -26,41 +30,58 @@ include 'func_exchange2.php';
 
 #################################
 
-if (isset($data['message']['chat']['id']))
-{
-	$chat_id = $data['message']['chat']['id'];
-}
-elseif(isset($data['callback_query']['message']['chat']['id']))
-{
-	$chat_id = $data['callback_query']['message']['chat']['id'];
-}
-elseif(isset($data['inline_query']['from']['id']))
-{
-	$chat_id = $data['inline_query']['from']['id'];
+if (isset($data['message']['chat']['id'])) {
+    $chat_id = intval($data['message']['chat']['id']);
+} elseif (isset($data['callback_query']['message']['chat']['id'])) {
+    $chat_id = intval($data['callback_query']['message']['chat']['id']);
+} elseif (isset($data['inline_query']['from']['id'])) {
+    $chat_id = intval($data['inline_query']['from']['id']);
 }
 
 // Register new user in DB
 if(isset($data['callback_query']['message']['chat']['username']) && $data['callback_query']['message']['chat']['username'] != ''){
-	$fname = $data['callback_query']['message']['chat']['first_name'];
-	$lname = $data['callback_query']['message']['chat']['last_name'];
-	$uname = $data['callback_query']['message']['chat']['username'];
+        $fname = $data['callback_query']['message']['chat']['first_name'];
+        $lname = $data['callback_query']['message']['chat']['last_name'];
+        $uname = $data['callback_query']['message']['chat']['username'];
 } else{
-	$fname = $data['message']['from']['first_name'];
-	$lname = $data['message']['from']['last_name'];
-	$uname = $data['message']['from']['username'];
+        $fname = $data['message']['from']['first_name'];
+        $lname = $data['message']['from']['last_name'];
+        $uname = $data['message']['from']['username'];
 }
 $time = time();
 
-	if(empty($uname))$uname = 'undefined';
+        if (empty($uname)) {
+            $uname = 'undefined';
+        }
+        $uname = trim(filter_var($uname, FILTER_SANITIZE_FULL_SPECIAL_CHARS));
 
-	$str2select = "SELECT * FROM `users` WHERE `chatid`='$chat_id'";
-	$result = mysqli_query($link, $str2select);
-	if(mysqli_num_rows($result) == 0){
-		$str2ins = "INSERT INTO `users` (`chatid`,`username`,`tgr_ton`,`tgr_bep20`,`ton_ton`,`tgr_ton_full`,`ton_ton_full`,`ref`,`phone`) VALUES ('$chat_id','$uname', '0', '0', '0', '0', '0', '0', '0')";
-		mysqli_query($link, $str2ins);
-		$result = mysqli_query($link, $str2select);
-	}
-	$row = @mysqli_fetch_object($result);
+        $stmt = $link->prepare("SELECT * FROM `users` WHERE `chatid` = ?");
+        if ($stmt === false) {
+            error_log('Prepare failed: ' . $link->error);
+            exit();
+        }
+        $stmt->bind_param('i', $chat_id);
+        if (!$stmt->execute()) {
+            error_log('SQL Error: ' . $stmt->error);
+        }
+        $result = $stmt->get_result();
+        if (mysqli_num_rows($result) == 0) {
+            $stmtIns = $link->prepare("INSERT INTO `users` (`chatid`,`username`,`tgr_ton`,`tgr_bep20`,`ton_ton`,`tgr_ton_full`,`ton_ton_full`,`ref`,`phone`) VALUES (?, ?, 0, 0, 0, 0, 0, 0, 0)");
+            if ($stmtIns === false) {
+                error_log('Prepare failed: ' . $link->error);
+                exit();
+            }
+            $stmtIns->bind_param('is', $chat_id, $uname);
+            if (!$stmtIns->execute()) {
+                error_log('SQL Error: ' . $stmtIns->error);
+            }
+            $stmtIns->close();
+
+            $stmt->execute();
+            $result = $stmt->get_result();
+        }
+        $row = @mysqli_fetch_object($result);
+        $stmt->close();
 
 // Register new user in DB
 
@@ -511,9 +532,18 @@ else{
         }
   }else{
 
-		$str5select = "SELECT `action` FROM `temp_sess` WHERE `chatid`='$chat_id' ORDER BY `rowid` DESC LIMIT 1";
-		$result5 = mysqli_query($link, $str5select);
-		$row5 = @mysqli_fetch_object($result5);
+                $stmt5 = $link->prepare("SELECT `action` FROM `temp_sess` WHERE `chatid` = ? ORDER BY `rowid` DESC LIMIT 1");
+                if ($stmt5 === false) {
+                    error_log('Prepare failed: ' . $link->error);
+                } else {
+                    $stmt5->bind_param('i', $chat_id);
+                    if (!$stmt5->execute()) {
+                        error_log('SQL Error: ' . $stmt5->error);
+                    }
+                    $result5 = $stmt5->get_result();
+                    $row5 = @mysqli_fetch_object($result5);
+                    $stmt5->close();
+                }
 // Wallet
 		if(preg_match("/withdrawWallet\|/", $row5->action)){
 			withdrawFundsWait4Sum($data, $row5);
