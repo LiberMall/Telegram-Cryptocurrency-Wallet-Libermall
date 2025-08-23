@@ -1,0 +1,5 @@
+parameters:
+    level: 0
+    paths:
+        - tgbot.php
+        - func_gen.php
