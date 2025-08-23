@@ -1,6 +1,6 @@
 <?php
-$hostName = 'localhost';
-$userName = 'tegromoneybot_bot';
-$password = 'TV0Up5ARw036c';
-$databaseName = 'tegromoneybot_bot';
+$hostName = getenv('DB_HOST');
+$userName = getenv('DB_USER');
+$password = getenv('DB_PASSWORD');
+$databaseName = getenv('DB_NAME');
 ?>
