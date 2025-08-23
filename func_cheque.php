@@ -373,7 +373,7 @@ function chequeGetQRcode($rowid){
     $arInfo["inline_keyboard"][0][0]["text"] = "⏪ Назад в Чеки";
     send($chat_id, 'Ссылка на твой чек:
 <code>'.$a.'</code>', $arInfo);
-
+        $arInfo["inline_keyboard"][0][0]["text"] = t('back_to_main');
     sleep(5);
     unlink($filename);
 }
@@ -474,7 +474,7 @@ function chequeChangeRef($rowid){
     $arInfo["inline_keyboard"][0][1]["text"] = "25%".$ql;
     $ql = ($row->percent == 50) ? "🔸" : "";
     $arInfo["inline_keyboard"][0][2]["callback_data"] = "CRF|50|$rowid";
-    $arInfo["inline_keyboard"][0][2]["text"] = "50%".$ql;
+    $arInfo["inline_keyboard"][0][2]["text"] = "50%".$ql;        $arInfo["inline_keyboard"][0][0]["text"] = t('back_to_main');
     $ql = ($row->percent == 75) ? "🔸" : "";
     $arInfo["inline_keyboard"][0][3]["callback_data"] = "CRF|75|$rowid";
     $arInfo["inline_keyboard"][0][3]["text"] = "75%".$ql;

@@ -63,39 +63,36 @@ function send2($method, $request)
 }
 
 function mainMenu(){
-	global $chat_id, $link, $langcode, $text;
+        global $chat_id;
 
-    $arInfo["keyboard"][0][0]["text"] = "↩️ В главное меню";
+    $arInfo["keyboard"][0][0]["text"] = t('menu_back');
     $arInfo["resize_keyboard"] = TRUE;
-    send($chat_id, ' Рады приветствовать тебя в криптовалютном кошельке Libermall Bot!', $arInfo);
+    send($chat_id, t('welcome'), $arInfo);
 
     unset($arInfo);
 
     $arInfo["inline_keyboard"][0][0]["callback_data"] = 1;
-  $arInfo["inline_keyboard"][0][0]["text"] = "💎 Кошелек";
-  $arInfo["inline_keyboard"][0][1]["callback_data"] = 2;
-  $arInfo["inline_keyboard"][0][1]["text"] = "🏷 Чеки";
-  #$arInfo["inline_keyboard"][1][0]["callback_data"] = 3;
-  #$arInfo["inline_keyboard"][1][0]["text"] = "🗳 Обмен";
-  $arInfo["inline_keyboard"][1][0]["callback_data"] = 4;
-  $arInfo["inline_keyboard"][1][0]["text"] = "💹 Биржа";
-  $arInfo["inline_keyboard"][2][0]["callback_data"] = 5;
-  $arInfo["inline_keyboard"][2][0]["text"] = "💸 Маркет";
-  $arInfo["inline_keyboard"][2][1]["callback_data"] = 6;
-  $arInfo["inline_keyboard"][2][1]["text"] = "🪪 Счета";
-  $arInfo["inline_keyboard"][3][0]["callback_data"] = 7;
-  $arInfo["inline_keyboard"][3][0]["text"] = "💰 Сделки";
-  $arInfo["inline_keyboard"][3][1]["callback_data"] = 8;
-  $arInfo["inline_keyboard"][3][1]["text"] = "📈 Стейкинг";
-  $arInfo["inline_keyboard"][4][0]["callback_data"] = 9;
-  $arInfo["inline_keyboard"][4][0]["text"] = "🖼 NFT";
-  $arInfo["inline_keyboard"][4][1]["callback_data"] = 10;
-  $arInfo["inline_keyboard"][4][1]["text"] = "⚙️ Настройки";
+    $arInfo["inline_keyboard"][0][0]["text"] = t('menu_wallet');
+    $arInfo["inline_keyboard"][0][1]["callback_data"] = 2;
+    $arInfo["inline_keyboard"][0][1]["text"] = t('menu_checks');
+    $arInfo["inline_keyboard"][1][0]["callback_data"] = 4;
+    $arInfo["inline_keyboard"][1][0]["text"] = t('menu_exchange');
+    $arInfo["inline_keyboard"][2][0]["callback_data"] = 5;
+    $arInfo["inline_keyboard"][2][0]["text"] = "💸 Маркет";
+    $arInfo["inline_keyboard"][2][1]["callback_data"] = 6;
+    $arInfo["inline_keyboard"][2][1]["text"] = "🪪 Счета";
+    $arInfo["inline_keyboard"][3][0]["callback_data"] = 7;
+    $arInfo["inline_keyboard"][3][0]["text"] = "💰 Сделки";
+    $arInfo["inline_keyboard"][3][1]["callback_data"] = 8;
+    $arInfo["inline_keyboard"][3][1]["text"] = "📈 Стейкинг";
+    $arInfo["inline_keyboard"][4][0]["callback_data"] = 9;
+    $arInfo["inline_keyboard"][4][0]["text"] = "🖼 NFT";
+    $arInfo["inline_keyboard"][4][1]["callback_data"] = 10;
+    $arInfo["inline_keyboard"][4][1]["text"] = t('menu_settings');
 
-	send($chat_id, "Мультивалютный криптокошелек libermall.com. Покупайте, продавайте, храните и платите криптовалютой когда хотите.
-
-Подписывайтесь на <a href='https://t.me/LibermallRUS'>наш канал</a> и вступайте в <a href='https://t.me/libermallton'>наш чат</a>.", $arInfo);
+        send($chat_id, t('main_menu_text'), $arInfo);
 }
+
 
 function getRowUsers(){
 		global $link, $chat_id;
