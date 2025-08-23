@@ -484,6 +484,32 @@ function payOut($asset, $network, $sum, $fee){
         }
 }
 
+function ensure_tmp_dir($dir = 'tmp', $maxAge = 86400){
+    if(!is_dir($dir)){
+        mkdir($dir,0700,true);
+    }else{
+        @chmod($dir,0700);
+    }
+    foreach(glob($dir.'/*.json') as $file){
+        if(filemtime($file) < time() - $maxAge){
+            @unlink($file);
+        }
+    }
+}
+
+function save_tmp_json($name, array $data, $dir = 'tmp'){
+    ensure_tmp_dir($dir);
+    file_put_contents($dir.'/'.$name.'.json', json_encode($data));
+}
+
+function load_tmp_json($name, $dir = 'tmp'){
+    ensure_tmp_dir($dir);
+    $path = $dir.'/'.$name.'.json';
+    if(!file_exists($path)) return [];
+    $data = json_decode(file_get_contents($path), true);
+    return is_array($data) ? $data : [];
+}
+
 function uuid()
 {
 	return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',

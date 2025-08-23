@@ -620,7 +620,7 @@ function transferFunds(){
 
 	clean_temp_sess();
 	clean_temp_wallet();
-    unlink("tmp/chno_$chat_id.php");
+    @unlink("tmp/chno_$chat_id.json");
 
 	send2('sendMessage',
 	[
