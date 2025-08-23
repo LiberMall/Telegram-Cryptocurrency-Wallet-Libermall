@@ -167,21 +167,20 @@ function addFundsGetQRcode($asset,$network){
 	$address = addFundsGetAddress($asset,$network);
 
 	//get QR code
-	$time = time();
-	$url = "https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=".$address."&choe=UTF-8";
-	$img = file_get_contents($url);
-	$filename = "tmp/".$chat_id."_".$time.".jpg";
-	file_put_contents($filename, $img);
+    $time = time();
+    $url = "https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=".$address."&choe=UTF-8";
+    $img = file_get_contents($url);
+    ensure_tmp_dir(TMP_DIR);
+    $filename = TMP_DIR."/".$chat_id."_".$time.".jpg";
+    file_put_contents($filename, $img);
 
-	$initurl = "https://tegro.exchange/TegroMoneybot/tmp/".$chat_id."_".$time.".jpg";
-
-	$response = array(
-		'chat_id' => $chat_id,
-		'caption' => '',
-		'photo' => $initurl,
-		'parse_mode' => 'HTML'
-	);
-	sendit($response, 'sendPhoto');
+    $response = array(
+            'chat_id' => $chat_id,
+            'caption' => '',
+            'photo' => new CURLFile($filename),
+            'parse_mode' => 'HTML'
+    );
+    sendit($response, 'sendPhoto');
 
 	$arInfo["inline_keyboard"][0][0]["callback_data"] = 26;
   $arInfo["inline_keyboard"][0][0]["text"] = "⏪ Назад в кошелек";
@@ -190,7 +189,7 @@ function addFundsGetQRcode($asset,$network){
 Убедись, что ты переводишь в сети '.$network.'!', $arInfo);
 
 	sleep(5);
-	unlink($filename);
+    unlink($filename);
 }
 
 function addFundsCheck($asset,$network){
@@ -620,7 +619,7 @@ function transferFunds(){
 
 	clean_temp_sess();
 	clean_temp_wallet();
-    @unlink("tmp/chno_$chat_id.json");
+    @unlink(TMP_DIR."/chno_$chat_id.json");
 
 	send2('sendMessage',
 	[
