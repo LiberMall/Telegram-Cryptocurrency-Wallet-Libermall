@@ -257,22 +257,53 @@ else{
             delMessage("", $data['callback_query']['message']['message_id']);
             $p = explode("|", $data['callback_query']['data']);
             $asset = ($p[2] == 1) ? "TON" : "TGR";
-            include "tmp/$chat_id.php";
-            chequeSetRef($p[1], $asset, $availableBalance);
+            $tmp = load_tmp_json($chat_id);
+            if(!isset($tmp['availableBalance'])){
+                $response = array(
+                    'chat_id' => $chat_id,
+                    'text' => "❌ОШИБКА! Данные не найдены. Повтори попытку.",
+                    'parse_mode' => 'HTML');
+                sendit($response, 'sendMessage');
+            }else{
+                $availableBalance = $tmp['availableBalance'];
+                chequeSetRef($p[1], $asset, $availableBalance);
+            }
         }
         elseif( preg_match("/CNUM\|/", $data['callback_query']['data'])){
             delMessage("", $data['callback_query']['message']['message_id']);
             $p = explode("|", $data['callback_query']['data']);
             #$asset = ($p[2] == 1) ? "TON" : "TGR";
-            include "tmp/san_$chat_id.php";
-            chequeIssue($sum, $asset, $p[1], $ref);
+            $tmp = load_tmp_json('san_'.$chat_id);
+            if(!isset($tmp['sum'],$tmp['asset'])){
+                $response = array(
+                    'chat_id' => $chat_id,
+                    'text' => "❌ОШИБКА! Данные не найдены. Повтори попытку.",
+                    'parse_mode' => 'HTML');
+                sendit($response, 'sendMessage');
+            }else{
+                $sum = $tmp['sum'];
+                $asset = $tmp['asset'];
+                $ref = $tmp['ref'] ?? 0;
+                chequeIssue($sum, $asset, $p[1], $ref);
+            }
         }
         elseif( preg_match("/CREF\|/", $data['callback_query']['data'])){
             delMessage("", $data['callback_query']['message']['message_id']);
             $p = explode("|", $data['callback_query']['data']);
-            include "tmp/san_$chat_id.php";
-            include "tmp/$chat_id.php";
-            chequeSetNumActivations($sum, $asset, $availableBalance, $p[1]);
+            $tmpSan = load_tmp_json('san_'.$chat_id);
+            $tmpBal = load_tmp_json($chat_id);
+            if(!isset($tmpSan['sum'],$tmpSan['asset']) || !isset($tmpBal['availableBalance'])){
+                $response = array(
+                    'chat_id' => $chat_id,
+                    'text' => "❌ОШИБКА! Данные не найдены. Повтори попытку.",
+                    'parse_mode' => 'HTML');
+                sendit($response, 'sendMessage');
+            }else{
+                $sum = $tmpSan['sum'];
+                $asset = $tmpSan['asset'];
+                $availableBalance = $tmpBal['availableBalance'];
+                chequeSetNumActivations($sum, $asset, $availableBalance, $p[1]);
+            }
         }
         elseif( preg_match("/CHQ\|/", $data['callback_query']['data'])){
             delMessage("", $data['callback_query']['message']['message_id']);
