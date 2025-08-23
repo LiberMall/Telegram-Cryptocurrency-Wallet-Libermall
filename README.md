@@ -13,7 +13,7 @@ TON Multifunctional Bot is an indispensable assistant for working with TON. From
 
 ### **Setup and Launch**:
 
-1. Fill in the variables in `botdata.php` as per the comments provided in the file.
+1. Copy `.env.example` to `.env` and fill in the environment variables with your configuration.
 2. Add the link to `_0xpay_postback.php` in the postback field of the 0xpay control panel.
 3. Insert the link to `tm_postback.php` in the postback field of the tegro.money control panel.
 4. Set up the cronjobs as follows:
@@ -37,5 +37,12 @@ For better manageability and modularity, functions for each section of the bot a
 Contributions, feedback, and issues are welcome. Feel free to open an issue or submit a pull request!
 
 ---
+### **Environment Variables**
+
+The bot reads configuration from environment variables. Use the `.env.example` file as a template and provide values for:
+
+- Database connection (`DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`)
+- API keys and wallet details (`XPAY_MERCHANT_ID`, `XPAY_PRIVATE_KEY`, `TON_API_KEY`, `MAIN_WALLET`, `GEN_SEED`)
+- Fees and other settings (`TGR_BEP20_FEE`, `TGR_TON_FEE`, `TON_FEE`, `TEGROMONEY_SHOPID`, `TEGROMONEY_SECRETKEY`, `CHEQUE_FEE`, `STAKING_FEE_*`, `EXCHANGE_FEE`)
 
 **Note**: Always remember to stay safe and never share your private keys or sensitive information with the bot or any unverified platforms.
