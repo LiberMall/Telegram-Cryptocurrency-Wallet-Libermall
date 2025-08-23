@@ -13,7 +13,7 @@ TON Multifunctional Bot is an indispensable assistant for working with TON. From
 
 ### **Setup and Launch**:
 
-1. Fill in the variables in `botdata.php` as per the comments provided in the file.
+1. Copy `.env.example` to `.env`, set database credentials, API keys, and seed phrases as needed, and keep `.env` out of version control.
 2. Add the link to `_0xpay_postback.php` in the postback field of the 0xpay control panel.
 3. Insert the link to `tm_postback.php` in the postback field of the tegro.money control panel.
 4. Set up the cronjobs as follows:
