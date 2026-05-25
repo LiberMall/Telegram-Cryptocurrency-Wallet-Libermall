@@ -1,0 +1,26 @@
+# Secrets — NEVER commit these
+.env
+.env.local
+.env.production
+# NOTE: `botdata.php` ships as a placeholder with XXXXXXX values.
+# Replace locally with your real credentials, but do NOT git-commit the change.
+# (Use env vars via env.php instead — see README.)
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+config.local.*
+
+# Runtime state
+subscribers.json
+session/
+tmp/
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

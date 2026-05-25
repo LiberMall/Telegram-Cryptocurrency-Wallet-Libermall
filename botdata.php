@@ -1,15 +1,45 @@
 <?php
-$xPayMerchantId = '5a6200fe-0798-4b4a-b1c3-2779d42af64a';
-$xPayPrivateKey = '71ba018a2bb3ffb52fcceb9aa3b574bc';
-$tonapikey = 'e52c8854142eba7ba3c015c1b0b046d31e0333a6d25fce4e7872cec7cd9c39e4';
-$mainWallet = 'EQADeT9xqZ4wAam-bCXbTjNhUTN03K33EYQmnL5Q8udk5E2T';
-$genseed = 'tide viable airport master inch weather citizen hood slot wire fatal toy below bring same vocal amused tourist opera seed burger october collect master';
-$tgrbep20fee = 2; // USD
-$tgrtonfee = 0.1; // TON
-$tonfee = 0.1; // TON
-$tegromoney_shopid = "58897C1D797CA1F09A12269C8E40BA69";
-$tegromoney_secretkey = "p3fUjzEM";
-$chequefee = 0.02;
+// ────────────────────────────────────────────────────────────────────────────
+// SECURITY NOTICE
+//
+// This file previously contained real production credentials (xPay merchant
+// key, TON API key, a 24-word wallet seed mnemonic, TegroMoney secret).
+// They were committed to a PUBLIC GitHub repository from 2023-08-12 onward
+// and propagated to forks before the leak was discovered on 2026-05-25.
+//
+// All of the following have been ROTATED and the original wallet drained:
+//   • xPay merchant + private key
+//   • TON API key (toncenter.com)
+//   • TegroMoney shop id + secret key
+//   • Hot wallet seed mnemonic (the funding address has been emptied)
+//
+// Treat ANY commit of this file before 2026-05-25 as compromised.
+// Do NOT use any value from the historical version anywhere.
+//
+// ────────────────────────────────────────────────────────────────────────────
+//
+// Setup:
+//   1. Copy botdata_DEMO.php → botdata.php (this file)
+//   2. Fill in YOUR credentials below.
+//   3. Confirm `botdata.php` is in .gitignore. NEVER commit real values.
+//
+// Better: load these from environment variables. See `env.php`.
+// ────────────────────────────────────────────────────────────────────────────
+
+$xPayMerchantId       = getenv('XPAY_MERCHANT_ID')      ?: 'XXXXXXX';   // 0xPay merchant id
+$xPayPrivateKey       = getenv('XPAY_PRIVATE_KEY')      ?: 'XXXXXXX';   // 0xPay private key
+$tonapikey            = getenv('TON_API_KEY')           ?: 'XXXXXXX';   // toncenter.com API key
+$mainWallet           = getenv('MAIN_WALLET')           ?: 'XXXXXXX';   // Hot wallet address (public)
+$genseed              = getenv('WALLET_SEED')           ?: 'XXXXXXX';   // 24-word mnemonic — NEVER COMMIT
+$tegromoney_shopid    = getenv('TEGROMONEY_SHOP_ID')    ?: 'XXXXXXX';   // tegro.money shop id
+$tegromoney_secretkey = getenv('TEGROMONEY_SECRET_KEY') ?: 'XXXXXXX';   // tegro.money secret
+
+$tgrbep20fee = 2;     // USD
+$tgrtonfee   = 0.1;   // TON
+$tonfee      = 0.1;   // TON
+$chequefee   = 0.02;
+$exchangefee = 0.005;
+
 $stakingfee[0][0] = 15;
 $stakingfee[0][1] = 18;
 $stakingfee[0][2] = 21;
@@ -18,5 +48,3 @@ $stakingfee[1][0] = 9;
 $stakingfee[1][1] = 10;
 $stakingfee[1][2] = 11;
 $stakingfee[1][3] = 12;
-$exchangefee = 0.005;
- ?>
