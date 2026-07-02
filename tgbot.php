@@ -23,6 +23,7 @@ include 'func_cheque.php';
 include 'func_staking.php';
 include 'func_exchange.php';
 include 'func_exchange2.php';
+include 'whitelist.php';
 
 #################################
 
@@ -205,36 +206,48 @@ else{
 			delMessage("", $data['callback_query']['message']['message_id']);
 			withdrawFundsListNetworks($asset2wdwFunds);
 		}
-		elseif( preg_match("/ADD\|/", $data['callback_query']['data'])){
+                elseif( preg_match("/ADD\|/", $data['callback_query']['data'])){
       delMessage("", $data['callback_query']['message']['message_id']);
       $p = explode("|", $data['callback_query']['data']);
-			addFundsShowAddress($p[1],$p[2]);
-		}
-		elseif( preg_match("/QR\|/", $data['callback_query']['data'])){
+                        if(validateAssetNetworkParts($p)){
+                            addFundsShowAddress($p[1],$p[2]);
+                        }
+                }
+                elseif( preg_match("/QR\|/", $data['callback_query']['data'])){
       delMessage("", $data['callback_query']['message']['message_id']);
       $p = explode("|", $data['callback_query']['data']);
-			addFundsGetQRcode($p[1],$p[2]);
-		}
-		elseif( preg_match("/CHECK\|/", $data['callback_query']['data'])){
+                        if(validateAssetNetworkParts($p)){
+                            addFundsGetQRcode($p[1],$p[2]);
+                        }
+                }
+                elseif( preg_match("/CHECK\|/", $data['callback_query']['data'])){
       delMessage("", $data['callback_query']['message']['message_id']);
       $p = explode("|", $data['callback_query']['data']);
-			addFundsCheck($p[1],$p[2]);
-		}
-		elseif( preg_match("/WDW\|/", $data['callback_query']['data'])){
+                        if(validateAssetNetworkParts($p)){
+                            addFundsCheck($p[1],$p[2]);
+                        }
+                }
+                elseif( preg_match("/WDW\|/", $data['callback_query']['data'])){
       delMessage("", $data['callback_query']['message']['message_id']);
       $p = explode("|", $data['callback_query']['data']);
-			withdrawFundsWait4Address($p[1],$p[2]);
-		}
-		elseif( preg_match("/HISTORY\|/", $data['callback_query']['data'])){
+                        if(validateAssetNetworkParts($p)){
+                            withdrawFundsWait4Address($p[1],$p[2]);
+                        }
+                }
+                elseif( preg_match("/HISTORY\|/", $data['callback_query']['data'])){
       delMessage("", $data['callback_query']['message']['message_id']);
       $p = explode("|", $data['callback_query']['data']);
-			showHistory($p[1], 0);
-		}
-		elseif( preg_match("/HISTN\|/", $data['callback_query']['data'])){
+                        if(count($p) >= 2 && isValidHistoryType($p[1])){
+                            showHistory($p[1], 0);
+                        }
+                }
+                elseif( preg_match("/HISTN\|/", $data['callback_query']['data'])){
       delMessage("", $data['callback_query']['message']['message_id']);
       $p = explode("|", $data['callback_query']['data']);
-			showHistory($p[1], $p[2]);
-		}
+                        if(count($p) >= 3 && isValidHistoryType($p[1]) && ctype_digit($p[2])){
+                            showHistory($p[1], $p[2]);
+                        }
+                }
 		elseif( $data['callback_query']['data'] == 13 ){
       delMessage("", $data['callback_query']['message']['message_id']);
       transferFunds();
