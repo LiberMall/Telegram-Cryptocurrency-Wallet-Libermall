@@ -140,47 +140,84 @@ function save2temp($field, $val){
 }
 
 function delMessage($mid, $cid){
-	global $chat_id;
-		if($mid != ''){
-			$message_id = $mid-1;
-		}
-		elseif($cid != ''){
-			$message_id = $cid;
-		}
-
-		$ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
-		curl_setopt($ch2, CURLOPT_POST, 1);
-		curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => $message_id));
-		curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch2, CURLOPT_HEADER, false);
-		$res2 = curl_exec($ch2);
-		curl_close($ch2);
+        global $chat_id;
+        $message_id = null;
+        if(!empty($mid) && is_numeric($mid)){
+                $message_id = $mid-1;
+        }
+        elseif(!empty($cid) && is_numeric($cid)){
+                $message_id = $cid;
+        }
+        if($message_id === null){
+                error_log('delMessage: missing or invalid $mid and $cid');
+                return false;
+        }
+        $ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
+        curl_setopt($ch2, CURLOPT_POST, 1);
+        curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => $message_id));
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_HEADER, false);
+        $res2 = curl_exec($ch2);
+        if($res2 === false){
+                error_log('delMessage API error: '.curl_error($ch2));
+                curl_close($ch2);
+                return false;
+        }
+        $resJson = json_decode($res2, true);
+        if(empty($resJson['ok'])){
+                error_log('delMessage API responded with error: '.$res2);
+        }
+        curl_close($ch2);
+        return $resJson['ok'] ?? false;
 }
 
 function delMessage2($mid, $cid){
-	global $chat_id;
-		if($mid != ''){
-			$message_id = $mid-1;
-		}
-		elseif($cid != ''){
-			$message_id = $cid;
-		}
+        global $chat_id;
+        $message_id = null;
+        if(!empty($mid) && is_numeric($mid)){
+                $message_id = $mid-1;
+        }
+        elseif(!empty($cid) && is_numeric($cid)){
+                $message_id = $cid;
+        }
+        if($message_id === null || empty($cid) || !is_numeric($cid)){
+                error_log('delMessage2: missing or invalid $mid and $cid');
+                return false;
+        }
+        $ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
+        curl_setopt($ch2, CURLOPT_POST, 1);
+        curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => ($cid-1)));
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_HEADER, false);
+        $res2 = curl_exec($ch2);
+        if($res2 === false){
+                error_log('delMessage2 API error (first call): '.curl_error($ch2));
+                curl_close($ch2);
+                return false;
+        }
+        $resJson = json_decode($res2, true);
+        if(empty($resJson['ok'])){
+                error_log('delMessage2 API responded with error (first call): '.$res2);
+        }
+        curl_close($ch2);
 
-		$ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
-		curl_setopt($ch2, CURLOPT_POST, 1);
-		curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => ($cid-1)));
-		curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch2, CURLOPT_HEADER, false);
-		$res2 = curl_exec($ch2);
-		curl_close($ch2);
-
-		$ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
-		curl_setopt($ch2, CURLOPT_POST, 1);
-		curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => $message_id));
-		curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch2, CURLOPT_HEADER, false);
-		$res2 = curl_exec($ch2);
-		curl_close($ch2);
+        $ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
+        curl_setopt($ch2, CURLOPT_POST, 1);
+        curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => $message_id));
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_HEADER, false);
+        $res2 = curl_exec($ch2);
+        if($res2 === false){
+                error_log('delMessage2 API error (second call): '.curl_error($ch2));
+                curl_close($ch2);
+                return false;
+        }
+        $resJson2 = json_decode($res2, true);
+        if(empty($resJson2['ok'])){
+                error_log('delMessage2 API responded with error (second call): '.$res2);
+        }
+        curl_close($ch2);
+        return $resJson2['ok'] ?? false;
 
 }
 
