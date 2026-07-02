@@ -53,14 +53,31 @@ $time = time();
 
 	if(empty($uname))$uname = 'undefined';
 
-	$str2select = "SELECT * FROM `users` WHERE `chatid`='$chat_id'";
-	$result = mysqli_query($link, $str2select);
-	if(mysqli_num_rows($result) == 0){
-		$str2ins = "INSERT INTO `users` (`chatid`,`username`,`tgr_ton`,`tgr_bep20`,`ton_ton`,`tgr_ton_full`,`ton_ton_full`,`ref`,`phone`) VALUES ('$chat_id','$uname', '0', '0', '0', '0', '0', '0', '0')";
-		mysqli_query($link, $str2ins);
-		$result = mysqli_query($link, $str2select);
-	}
-	$row = @mysqli_fetch_object($result);
+        $stmt = mysqli_prepare($link, "SELECT * FROM `users` WHERE `chatid`=?");
+        if (!$stmt) {
+                error_log('DB prepare failed: '.mysqli_error($link));
+                exit();
+        }
+        mysqli_stmt_bind_param($stmt, 's', $chat_id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if ($result && mysqli_num_rows($result) == 0) {
+                $stmtIns = mysqli_prepare($link, "INSERT INTO `users` (`chatid`,`username`,`tgr_ton`,`tgr_bep20`,`ton_ton`,`tgr_ton_full`,`ton_ton_full`,`ref`,`phone`) VALUES (?,?,?,?,?,?,?,?,?)");
+                if ($stmtIns) {
+                        $zero = '0';
+                        mysqli_stmt_bind_param($stmtIns, 'sssssssss', $chat_id, $uname, $zero, $zero, $zero, $zero, $zero, $zero, $zero);
+                        if (!mysqli_stmt_execute($stmtIns)) {
+                                error_log('DB insert failed: '.mysqli_stmt_error($stmtIns));
+                        }
+                        mysqli_stmt_close($stmtIns);
+                        mysqli_stmt_execute($stmt);
+                        $result = mysqli_stmt_get_result($stmt);
+                } else {
+                        error_log('DB prepare failed: '.mysqli_error($link));
+                }
+        }
+        $row = $result ? mysqli_fetch_object($result) : null;
+        mysqli_stmt_close($stmt);
 
 // Register new user in DB
 
@@ -511,9 +528,17 @@ else{
         }
   }else{
 
-		$str5select = "SELECT `action` FROM `temp_sess` WHERE `chatid`='$chat_id' ORDER BY `rowid` DESC LIMIT 1";
-		$result5 = mysqli_query($link, $str5select);
-		$row5 = @mysqli_fetch_object($result5);
+                $stmt5 = mysqli_prepare($link, "SELECT `action` FROM `temp_sess` WHERE `chatid`=? ORDER BY `rowid` DESC LIMIT 1");
+                if ($stmt5) {
+                        mysqli_stmt_bind_param($stmt5, 's', $chat_id);
+                        mysqli_stmt_execute($stmt5);
+                        $result5 = mysqli_stmt_get_result($stmt5);
+                        $row5 = $result5 ? mysqli_fetch_object($result5) : null;
+                        mysqli_stmt_close($stmt5);
+                } else {
+                        error_log('DB prepare failed: '.mysqli_error($link));
+                        $row5 = null;
+                }
 // Wallet
 		if(preg_match("/withdrawWallet\|/", $row5->action)){
 			withdrawFundsWait4Sum($data, $row5);

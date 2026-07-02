@@ -98,44 +98,89 @@ function mainMenu(){
 }
 
 function getRowUsers(){
-		global $link, $chat_id;
+                global $link, $chat_id;
 
-		$str2select = "SELECT * FROM `users` WHERE `chatid`='$chat_id' ORDER BY `rowid` DESC LIMIT 1";
-		$result = mysqli_query($link, $str2select);
-		$row = @mysqli_fetch_object($result);
-		return $row;
+                $stmt = mysqli_prepare($link, "SELECT * FROM `users` WHERE `chatid`=? ORDER BY `rowid` DESC LIMIT 1");
+                if ($stmt) {
+                        mysqli_stmt_bind_param($stmt, 's', $chat_id);
+                        mysqli_stmt_execute($stmt);
+                        $result = mysqli_stmt_get_result($stmt);
+                        $row = $result ? mysqli_fetch_object($result) : null;
+                        mysqli_stmt_close($stmt);
+                } else {
+                        error_log('DB prepare failed: '.mysqli_error($link));
+                        $row = null;
+                }
+                return $row;
 }
 
 function getTONWalletRow($chat_id){
-		global $link;
+                global $link;
 
-		$str2select = "SELECT * FROM `wallets` WHERE `chatid`='$chat_id' AND `network`='TON' ORDER BY `rowid` DESC LIMIT 1";
-		$result = mysqli_query($link, $str2select);
-		$row = @mysqli_fetch_object($result);
-		return $row;
+                $stmt = mysqli_prepare($link, "SELECT * FROM `wallets` WHERE `chatid`=? AND `network`='TON' ORDER BY `rowid` DESC LIMIT 1");
+                if ($stmt) {
+                        mysqli_stmt_bind_param($stmt, 's', $chat_id);
+                        mysqli_stmt_execute($stmt);
+                        $result = mysqli_stmt_get_result($stmt);
+                        $row = $result ? mysqli_fetch_object($result) : null;
+                        mysqli_stmt_close($stmt);
+                } else {
+                        error_log('DB prepare failed: '.mysqli_error($link));
+                        $row = null;
+                }
+                return $row;
 }
 
 function clean_temp_sess(){
-	global $chat_id, $link;
+        global $chat_id, $link;
 
-	$str2del = "DELETE FROM `temp_sess` WHERE `chatid` = '$chat_id'";
-	mysqli_query($link, $str2del);
+        $stmt = mysqli_prepare($link, "DELETE FROM `temp_sess` WHERE `chatid` = ?");
+        if ($stmt) {
+                mysqli_stmt_bind_param($stmt, 's', $chat_id);
+                if (!mysqli_stmt_execute($stmt)) {
+                        error_log('DB delete failed: '.mysqli_stmt_error($stmt));
+                }
+                mysqli_stmt_close($stmt);
+        } else {
+                error_log('DB prepare failed: '.mysqli_error($link));
+        }
 }
 
 function clean_temp_wallet(){
-	global $chat_id, $link;
+        global $chat_id, $link;
 
-	$str2del = "DELETE FROM `temp_wallet` WHERE `chatid` = '$chat_id'";
-	mysqli_query($link, $str2del);
+        $stmt = mysqli_prepare($link, "DELETE FROM `temp_wallet` WHERE `chatid` = ?");
+        if ($stmt) {
+                mysqli_stmt_bind_param($stmt, 's', $chat_id);
+                if (!mysqli_stmt_execute($stmt)) {
+                        error_log('DB delete failed: '.mysqli_stmt_error($stmt));
+                }
+                mysqli_stmt_close($stmt);
+        } else {
+                error_log('DB prepare failed: '.mysqli_error($link));
+        }
 }
 
 function save2temp($field, $val){
 
-	global $link, $chat_id;
-	$curtime = time();
+        global $link, $chat_id;
+        $curtime = time();
 
-	$str2ins = "INSERT INTO `temp_sess` (`chatid`,`$field`, `times`) VALUES ('$chat_id','$val', '$curtime')";
-	mysqli_query($link, $str2ins);
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $field)) {
+                error_log('Invalid field name');
+                return;
+        }
+        $query = "INSERT INTO `temp_sess` (`chatid`,`$field`, `times`) VALUES (?,?,?)";
+        $stmt = mysqli_prepare($link, $query);
+        if ($stmt) {
+                mysqli_stmt_bind_param($stmt, 'ssi', $chat_id, $val, $curtime);
+                if (!mysqli_stmt_execute($stmt)) {
+                        error_log('DB insert failed: '.mysqli_stmt_error($stmt));
+                }
+                mysqli_stmt_close($stmt);
+        } else {
+                error_log('DB prepare failed: '.mysqli_error($link));
+        }
 
 }
 
@@ -185,36 +230,62 @@ function delMessage2($mid, $cid){
 }
 
 function getTGRrate(){
-		global $link;
+                global $link;
 
-	$str2select = "SELECT * FROM `tgr_rate` WHERE `rowid`='1'";
-	$result = mysqli_query($link, $str2select);
-	$row = @mysqli_fetch_object($result);
+        $stmt = mysqli_prepare($link, "SELECT * FROM `tgr_rate` WHERE `rowid`=?");
+        if ($stmt) {
+                $one = 1;
+                mysqli_stmt_bind_param($stmt, 'i', $one);
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
+                $row = $result ? mysqli_fetch_object($result) : null;
+                mysqli_stmt_close($stmt);
+        } else {
+                error_log('DB prepare failed: '.mysqli_error($link));
+                $row = null;
+        }
 
-	$tgrRate = $row->tgr_rate;
-	return $tgrRate;
+        $tgrRate = $row ? $row->tgr_rate : 0;
+        return $tgrRate;
 }
 
 function getTONrate(){
-		global $link;
+                global $link;
 
-	$str2select = "SELECT * FROM `ton_rate` WHERE `rowid`='1'";
-	$result = mysqli_query($link, $str2select);
-	$row = @mysqli_fetch_object($result);
+        $stmt = mysqli_prepare($link, "SELECT * FROM `ton_rate` WHERE `rowid`=?");
+        if ($stmt) {
+                $one = 1;
+                mysqli_stmt_bind_param($stmt, 'i', $one);
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
+                $row = $result ? mysqli_fetch_object($result) : null;
+                mysqli_stmt_close($stmt);
+        } else {
+                error_log('DB prepare failed: '.mysqli_error($link));
+                $row = null;
+        }
 
-	$tonRate = $row->ton_rate;
-	return $tonRate;
+        $tonRate = $row ? $row->ton_rate : 0;
+        return $tonRate;
 }
 
 function getBalance(){
-	global $chat_id, $link;
+        global $chat_id, $link;
 
-	$str2select = "SELECT * FROM `users` WHERE `chatid`='$chat_id'";
-	$result = mysqli_query($link, $str2select);
-	$row = @mysqli_fetch_object($result);
-	$balances = array($row->tgr_ton_full,$row->tgr_bep20,$row->ton_ton_full);
+        $stmt = mysqli_prepare($link, "SELECT * FROM `users` WHERE `chatid`=?");
+        if ($stmt) {
+                mysqli_stmt_bind_param($stmt, 's', $chat_id);
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
+                $row = $result ? mysqli_fetch_object($result) : null;
+                mysqli_stmt_close($stmt);
+        } else {
+                error_log('DB prepare failed: '.mysqli_error($link));
+                $row = null;
+        }
+        $balances = array($row->tgr_ton_full ?? 0,$row->tgr_bep20 ?? 0,$row->ton_ton_full ?? 0);
 
-	return $balances;
+        return $balances;
 }
 
 function saveReferral($data){
@@ -230,12 +301,23 @@ function saveReferral($data){
         }
 		elseif($ref != $chat_id){
         // if referral
-			$str2select = "SELECT `ref` FROM `users` WHERE `chatid`='$chat_id'";
-			$result = mysqli_query($link, $str2select);
-			$row = @mysqli_fetch_object($result);
-			if($row->ref == 0){
-				$str2upd = "UPDATE `users` SET `ref`='$ref' WHERE `chatid`='$chat_id'";
-				mysqli_query($link, $str2upd);
+                        $stmt = mysqli_prepare($link, "SELECT `ref` FROM `users` WHERE `chatid`=?");
+                        mysqli_stmt_bind_param($stmt, 's', $chat_id);
+                        mysqli_stmt_execute($stmt);
+                        $result = mysqli_stmt_get_result($stmt);
+                        $row = $result ? mysqli_fetch_object($result) : null;
+                        mysqli_stmt_close($stmt);
+                        if($row && $row->ref == 0){
+                                $stmt2 = mysqli_prepare($link, "UPDATE `users` SET `ref`=? WHERE `chatid`=?");
+                                if ($stmt2) {
+                                        mysqli_stmt_bind_param($stmt2, 'ss', $ref, $chat_id);
+                                        if (!mysqli_stmt_execute($stmt2)) {
+                                                error_log('DB update failed: '.mysqli_stmt_error($stmt2));
+                                        }
+                                        mysqli_stmt_close($stmt2);
+                                } else {
+                                        error_log('DB prepare failed: '.mysqli_error($link));
+                                }
 
 				$response = array(
 						'chat_id' => $ref,
@@ -252,24 +334,56 @@ function saveReferral($data){
     }
 }
 function referralFee($value){
-	global $chat_id, $link;
+        global $chat_id, $link;
 
-	$str2select = "SELECT `ref` FROM `users` WHERE `chatid`='$chat_id'";
-	$result = mysqli_query($link, $str2select);
-	$row = @mysqli_fetch_object($result);
+        $stmt = mysqli_prepare($link, "SELECT `ref` FROM `users` WHERE `chatid`=?");
+        if ($stmt) {
+                mysqli_stmt_bind_param($stmt, 's', $chat_id);
+                mysqli_stmt_execute($stmt);
+                $result = mysqli_stmt_get_result($stmt);
+                $row = $result ? mysqli_fetch_object($result) : null;
+                mysqli_stmt_close($stmt);
+        } else {
+                error_log('DB prepare failed: '.mysqli_error($link));
+                $row = null;
+        }
 
 	if($row->ref != 0){
-		$str3select = "SELECT * FROM `users` WHERE `chatid`='".$row->ref."'";
-		$result3 = mysqli_query($link, $str3select);
-		$row3 = @mysqli_fetch_object($result3);
+                $stmt3 = mysqli_prepare($link, "SELECT * FROM `users` WHERE `chatid`=?");
+                if ($stmt3) {
+                        mysqli_stmt_bind_param($stmt3, 's', $row->ref);
+                        mysqli_stmt_execute($stmt3);
+                        $result3 = mysqli_stmt_get_result($stmt3);
+                        $row3 = $result3 ? mysqli_fetch_object($result3) : null;
+                        mysqli_stmt_close($stmt3);
+                } else {
+                        error_log('DB prepare failed: '.mysqli_error($link));
+                        $row3 = null;
+                }
 
 		$newtotalTon = $row3->ton_ton_full + $value;
-		$str2upd = "UPDATE `users` SET `ton_ton_full`='$newtotalTon' WHERE `chatid`='".$row->ref."'";
-		mysqli_query($link, $str2upd);
+                $stmtUpd = mysqli_prepare($link, "UPDATE `users` SET `ton_ton_full`=? WHERE `chatid`=?");
+                if ($stmtUpd) {
+                        mysqli_stmt_bind_param($stmtUpd, 'ds', $newtotalTon, $row->ref);
+                        if (!mysqli_stmt_execute($stmtUpd)) {
+                                error_log('DB update failed: '.mysqli_stmt_error($stmtUpd));
+                        }
+                        mysqli_stmt_close($stmtUpd);
+                } else {
+                        error_log('DB prepare failed: '.mysqli_error($link));
+                }
 
 		$times = time();
-		$str2ins = "INSERT INTO `refcases` (`chatid`,`refid`,`sum`,`times`) VALUES ('".$row->ref."','$chat_id','$value','$times')";
-		mysqli_query($link, $str2ins);
+                $stmtIns = mysqli_prepare($link, "INSERT INTO `refcases` (`chatid`,`refid`,`sum`,`times`) VALUES (?,?,?,?)");
+                if ($stmtIns) {
+                        mysqli_stmt_bind_param($stmtIns, 'ssdi', $row->ref, $chat_id, $value, $times);
+                        if (!mysqli_stmt_execute($stmtIns)) {
+                                error_log('DB insert failed: '.mysqli_stmt_error($stmtIns));
+                        }
+                        mysqli_stmt_close($stmtIns);
+                } else {
+                        error_log('DB prepare failed: '.mysqli_error($link));
+                }
 	}
 }
 function generatePassword($length) {
@@ -332,8 +446,18 @@ function createAPITONaddress($asset){
 
     $response = $ton->createWallet();
 
-		$str2ins = "INSERT INTO `wallets` (`chatid`,`asset`,`network`,`address`,`seed`,`publicKey`,`privateKey`) VALUES ('$chat_id','TON','TON','".$response->address."','".$response->mnemonicStr."','".$response->publicKey."','".$response->privateKey."')";
-		mysqli_query($link, $str2ins);
+                $stmt = mysqli_prepare($link, "INSERT INTO `wallets` (`chatid`,`asset`,`network`,`address`,`seed`,`publicKey`,`privateKey`) VALUES (?,?,?,?,?,?,?)");
+                if ($stmt) {
+                        $assetVal = 'TON';
+                        $networkVal = 'TON';
+                        mysqli_stmt_bind_param($stmt, 'sssssss', $chat_id, $assetVal, $networkVal, $response->address, $response->mnemonicStr, $response->publicKey, $response->privateKey);
+                        if (!mysqli_stmt_execute($stmt)) {
+                                error_log('DB insert failed: '.mysqli_stmt_error($stmt));
+                        }
+                        mysqli_stmt_close($stmt);
+                } else {
+                        error_log('DB prepare failed: '.mysqli_error($link));
+                }
 
 		return $response->address;
 }
@@ -341,9 +465,17 @@ function createAPITONaddress($asset){
 function saveTransaction($sum, $asset, $network, $type, $address){
 	global $chat_id, $link;
 
-	$curtime = time();
-	$str2ins = "INSERT INTO `transactions` (`chatid`,`times`, `asset`, `network`, `sum`, `type`, `address`) VALUES ('$chat_id','$curtime', '$asset', '$network', '$sum', '$type', '$address')";
-	mysqli_query($link, $str2ins);
+        $curtime = time();
+        $stmt = mysqli_prepare($link, "INSERT INTO `transactions` (`chatid`,`times`, `asset`, `network`, `sum`, `type`, `address`) VALUES (?,?,?,?,?,?,?)");
+        if ($stmt) {
+                mysqli_stmt_bind_param($stmt, 'sissdss', $chat_id, $curtime, $asset, $network, $sum, $type, $address);
+                if (!mysqli_stmt_execute($stmt)) {
+                        error_log('DB insert failed: '.mysqli_stmt_error($stmt));
+                }
+                mysqli_stmt_close($stmt);
+        } else {
+                error_log('DB prepare failed: '.mysqli_error($link));
+        }
 }
 
 function takeFee($asset, $network){
@@ -360,10 +492,18 @@ function takeFee($asset, $network){
 			$fee = $tonfee;
 		}
 
-		$row = getRowUsers();
-		$newTotalTon = $row->ton_ton_full - $fee;
-		$str2upd = "UPDATE `users` SET `ton_ton_full`='$newTotalTon' WHERE `rowid`='".$row->rowid."'";
-		mysqli_query($link, $str2upd);
+                $row = getRowUsers();
+                $newTotalTon = $row->ton_ton_full - $fee;
+                $stmt = mysqli_prepare($link, "UPDATE `users` SET `ton_ton_full`=? WHERE `rowid`=?");
+                if ($stmt) {
+                        mysqli_stmt_bind_param($stmt, 'di', $newTotalTon, $row->rowid);
+                        if (!mysqli_stmt_execute($stmt)) {
+                                error_log('DB update failed: '.mysqli_stmt_error($stmt));
+                        }
+                        mysqli_stmt_close($stmt);
+                } else {
+                        error_log('DB prepare failed: '.mysqli_error($link));
+                }
 
         return $fee;
 }
@@ -371,9 +511,17 @@ function takeFee($asset, $network){
 function payOut($asset, $network, $sum, $fee){
     global $chat_id, $tonapikey, $link, $xPayPrivateKey, $xPayMerchantId, $tonapikey, $genseed;
 
-		$str5select = "SELECT `wallet` FROM `temp_wallet` WHERE `chatid`='$chat_id' ORDER BY `rowid` DESC LIMIT 1";
-		$result5 = mysqli_query($link, $str5select);
-		$row5 = @mysqli_fetch_object($result5);
+                $stmt5 = mysqli_prepare($link, "SELECT `wallet` FROM `temp_wallet` WHERE `chatid`=? ORDER BY `rowid` DESC LIMIT 1");
+                if ($stmt5) {
+                        mysqli_stmt_bind_param($stmt5, 's', $chat_id);
+                        mysqli_stmt_execute($stmt5);
+                        $result5 = mysqli_stmt_get_result($stmt5);
+                        $row5 = $result5 ? mysqli_fetch_object($result5) : null;
+                        mysqli_stmt_close($stmt5);
+                } else {
+                        error_log('DB prepare failed: '.mysqli_error($link));
+                        $row5 = null;
+                }
 
 		$success = 0;
 		$trxurl = "https://tonviewer.com/";
@@ -441,26 +589,53 @@ function payOut($asset, $network, $sum, $fee){
             $tonrate = getTONrate();
             $tgrrate = getTGRrate();
 
-			if($asset == "TGR" && $network == "BEP20"){
-				$newTotal = $row->tgr_bep20 - $sum;
-				$str2upd = "UPDATE `users` SET `tgr_bep20`='$newTotal' WHERE `rowid`='".$row->rowid."'";
+                        if($asset == "TGR" && $network == "BEP20"){
+                                $newTotal = $row->tgr_bep20 - $sum;
+                                $stmtUpd = mysqli_prepare($link, "UPDATE `users` SET `tgr_bep20`=? WHERE `rowid`=?");
+                                if ($stmtUpd) {
+                                        mysqli_stmt_bind_param($stmtUpd, 'di', $newTotal, $row->rowid);
+                                        if (!mysqli_stmt_execute($stmtUpd)) {
+                                                error_log('DB update failed: '.mysqli_stmt_error($stmtUpd));
+                                        }
+                                        mysqli_stmt_close($stmtUpd);
+                                } else {
+                                        error_log('DB prepare failed: '.mysqli_error($link));
+                                }
                 $suminUSD = $sum * $tgrrate;
                 $takenSum = $sum." TGR и $fee TON";
-			}
-			elseif($asset == "TGR" && $network == "TON"){
-				$newTotal = $row->tgr_ton_full - $sum;
-				$str2upd = "UPDATE `users` SET `tgr_ton_full`='$newTotal' WHERE `rowid`='".$row->rowid."'";
+                        }
+                        elseif($asset == "TGR" && $network == "TON"){
+                                $newTotal = $row->tgr_ton_full - $sum;
+                                $stmtUpd = mysqli_prepare($link, "UPDATE `users` SET `tgr_ton_full`=? WHERE `rowid`=?");
+                                if ($stmtUpd) {
+                                        mysqli_stmt_bind_param($stmtUpd, 'di', $newTotal, $row->rowid);
+                                        if (!mysqli_stmt_execute($stmtUpd)) {
+                                                error_log('DB update failed: '.mysqli_stmt_error($stmtUpd));
+                                        }
+                                        mysqli_stmt_close($stmtUpd);
+                                } else {
+                                        error_log('DB prepare failed: '.mysqli_error($link));
+                                }
                 $suminUSD = $sum * $tgrrate;
                 $takenSum = $sum." TGR и $fee TON";
-			}
-			elseif($asset == "TON" && $network == "TON"){
-				$newTotal = $row->ton_ton_full - $sum;
-				$str2upd = "UPDATE `users` SET `ton_ton_full`='$newTotal' WHERE `rowid`='".$row->rowid."'";
+                        }
+                        elseif($asset == "TON" && $network == "TON"){
+                                $newTotal = $row->ton_ton_full - $sum;
+                                $stmtUpd = mysqli_prepare($link, "UPDATE `users` SET `ton_ton_full`=? WHERE `rowid`=?");
+                                if ($stmtUpd) {
+                                        mysqli_stmt_bind_param($stmtUpd, 'di', $newTotal, $row->rowid);
+                                        if (!mysqli_stmt_execute($stmtUpd)) {
+                                                error_log('DB update failed: '.mysqli_stmt_error($stmtUpd));
+                                        }
+                                        mysqli_stmt_close($stmtUpd);
+                                } else {
+                                        error_log('DB prepare failed: '.mysqli_error($link));
+                                }
                 $suminUSD = $sum * $tonrate;
                 $takenSum = ($sum+$fee)." TON";
-			}
-			mysqli_query($link, $str2upd);
-            $feeinUSD = $fee * $tonrate;
+                        }
+                        // update already executed in branches above
+                        $feeinUSD = $fee * $tonrate;
 
 			saveTransaction($sum, $asset, $network, "payout", $row5->wallet);
 
