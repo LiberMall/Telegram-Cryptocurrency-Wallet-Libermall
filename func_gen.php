@@ -1,12 +1,21 @@
 <?php
 function sendit($response, $restype){
-	$ch = curl_init('https://api.telegram.org/bot' . TOKEN . '/'.$restype);
-	curl_setopt($ch, CURLOPT_POST, 1);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $response);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_HEADER, false);
-	curl_exec($ch);
-	curl_close($ch);
+        $ch = curl_init('https://api.telegram.org/bot' . TOKEN . '/'.$restype);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $response);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        $result = curl_exec($ch);
+        if($result === false){
+                error_log('Telegram API curl error: '.curl_error($ch));
+        }else{
+                $json = json_decode($result, true);
+                if(isset($json['ok']) && !$json['ok']){
+                        error_log('Telegram API error ('.$restype.'): '.$result);
+                }
+        }
+        curl_close($ch);
+        return $result;
 }
 
 function send($id, $message, $keyboard) {
@@ -45,21 +54,29 @@ function send($id, $message, $keyboard) {
 function send2($method, $request)
 {
 
-	$ch = curl_init('https://api.telegram.org/bot' . TOKEN . '/' . $method);
-	curl_setopt_array($ch,
-		[
-			CURLOPT_HEADER => false,
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_POST => true,
-			CURLOPT_POSTFIELDS => json_encode($request),
-			CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
-			CURLOPT_SSL_VERIFYPEER => false,
-		]
-	);
-	$result = curl_exec($ch);
-	curl_close($ch);
+        $ch = curl_init('https://api.telegram.org/bot' . TOKEN . '/' . $method);
+        curl_setopt_array($ch,
+                [
+                        CURLOPT_HEADER => false,
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_POST => true,
+                        CURLOPT_POSTFIELDS => json_encode($request),
+                        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                        CURLOPT_SSL_VERIFYPEER => false,
+                ]
+        );
+        $result = curl_exec($ch);
+        if($result === false){
+                error_log('Telegram API curl error: '.curl_error($ch));
+        }else{
+                $json = json_decode($result, true);
+                if(isset($json['ok']) && !$json['ok']){
+                        error_log('Telegram API error ('.$method.'): '.$result);
+                }
+        }
+        curl_close($ch);
 
-	return $result;
+        return $result;
 }
 
 function mainMenu(){
@@ -140,47 +157,77 @@ function save2temp($field, $val){
 }
 
 function delMessage($mid, $cid){
-	global $chat_id;
-		if($mid != ''){
-			$message_id = $mid-1;
-		}
-		elseif($cid != ''){
-			$message_id = $cid;
-		}
+        global $chat_id;
+        $message_id = null;
+        if($mid != ''){
+                $message_id = $mid-1;
+        }elseif($cid != '' && $cid != -1){
+                $message_id = $cid;
+        }
 
-		$ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
-		curl_setopt($ch2, CURLOPT_POST, 1);
-		curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => $message_id));
-		curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch2, CURLOPT_HEADER, false);
-		$res2 = curl_exec($ch2);
-		curl_close($ch2);
+        if($message_id !== null){
+                $ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
+                curl_setopt($ch2, CURLOPT_POST, 1);
+                curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => $message_id));
+                curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch2, CURLOPT_HEADER, false);
+                $res2 = curl_exec($ch2);
+                if($res2 === false){
+                        error_log('Telegram API curl error: '.curl_error($ch2));
+                }else{
+                        $json = json_decode($res2, true);
+                        if(isset($json['ok']) && !$json['ok']){
+                                error_log('Telegram API error (deleteMessage): '.$res2);
+                        }
+                }
+                curl_close($ch2);
+        }
 }
 
 function delMessage2($mid, $cid){
-	global $chat_id;
-		if($mid != ''){
-			$message_id = $mid-1;
-		}
-		elseif($cid != ''){
-			$message_id = $cid;
-		}
+        global $chat_id;
+        $message_id = null;
+        if($mid != ''){
+                $message_id = $mid-1;
+        }elseif($cid != '' && $cid != -1){
+                $message_id = $cid;
+        }
 
-		$ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
-		curl_setopt($ch2, CURLOPT_POST, 1);
-		curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => ($cid-1)));
-		curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch2, CURLOPT_HEADER, false);
-		$res2 = curl_exec($ch2);
-		curl_close($ch2);
+        if($cid != '' && $cid != -1){
+                $ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
+                curl_setopt($ch2, CURLOPT_POST, 1);
+                curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => ($cid-1)));
+                curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch2, CURLOPT_HEADER, false);
+                $res2 = curl_exec($ch2);
+                if($res2 === false){
+                        error_log('Telegram API curl error: '.curl_error($ch2));
+                }else{
+                        $json = json_decode($res2, true);
+                        if(isset($json['ok']) && !$json['ok']){
+                                error_log('Telegram API error (deleteMessage): '.$res2);
+                        }
+                }
+                curl_close($ch2);
+        }
 
-		$ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
-		curl_setopt($ch2, CURLOPT_POST, 1);
-		curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => $message_id));
-		curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch2, CURLOPT_HEADER, false);
-		$res2 = curl_exec($ch2);
-		curl_close($ch2);
+        if($message_id !== null){
+                $ch2 = curl_init('https://api.telegram.org/bot' . TOKEN . '/deleteMessage');
+                curl_setopt($ch2, CURLOPT_POST, 1);
+                curl_setopt($ch2, CURLOPT_POSTFIELDS, array('chat_id' => $chat_id, 'message_id' => $message_id));
+                curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch2, CURLOPT_HEADER, false);
+                $res2 = curl_exec($ch2);
+                if($res2 === false){
+                        error_log('Telegram API curl error: '.curl_error($ch2));
+                }else{
+                        $json = json_decode($res2, true);
+                        if(isset($json['ok']) && !$json['ok']){
+                                error_log('Telegram API error (deleteMessage): '.$res2);
+                        }
+                }
+                curl_close($ch2);
+        }
 
 }
 
