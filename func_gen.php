@@ -484,30 +484,34 @@ function payOut($asset, $network, $sum, $fee){
         }
 }
 
-function ensure_tmp_dir($dir = 'tmp', $maxAge = 86400){
+function ensure_tmp_dir($dir = TMP_DIR, $maxAge = 86400){
     if(!is_dir($dir)){
         mkdir($dir,0700,true);
     }else{
         @chmod($dir,0700);
     }
-    foreach(glob($dir.'/*.json') as $file){
+    foreach(glob($dir.'/*') as $file){
         if(filemtime($file) < time() - $maxAge){
             @unlink($file);
         }
     }
 }
 
-function save_tmp_json($name, array $data, $dir = 'tmp'){
+function save_tmp_json($name, array $data, $dir = TMP_DIR){
     ensure_tmp_dir($dir);
     file_put_contents($dir.'/'.$name.'.json', json_encode($data));
 }
 
-function load_tmp_json($name, $dir = 'tmp'){
+function load_tmp_json($name, array $requiredKeys = [], $dir = TMP_DIR){
     ensure_tmp_dir($dir);
     $path = $dir.'/'.$name.'.json';
     if(!file_exists($path)) return [];
     $data = json_decode(file_get_contents($path), true);
-    return is_array($data) ? $data : [];
+    if(!is_array($data)) return [];
+    foreach($requiredKeys as $k){
+        if(!array_key_exists($k, $data)) return [];
+    }
+    return $data;
 }
 
 function uuid()

@@ -267,8 +267,8 @@ else{
             delMessage("", $data['callback_query']['message']['message_id']);
             $p = explode("|", $data['callback_query']['data']);
             $asset = ($p[2] == 1) ? "TON" : "TGR";
-            $tmp = load_tmp_json($chat_id);
-            if(!isset($tmp['availableBalance'])){
+            $tmp = load_tmp_json($chat_id, ['availableBalance']);
+            if(empty($tmp)){
                 $response = array(
                     'chat_id' => $chat_id,
                     'text' => "❌ОШИБКА! Данные не найдены. Повтори попытку.",
@@ -283,8 +283,8 @@ else{
             delMessage("", $data['callback_query']['message']['message_id']);
             $p = explode("|", $data['callback_query']['data']);
             #$asset = ($p[2] == 1) ? "TON" : "TGR";
-            $tmp = load_tmp_json('san_'.$chat_id);
-            if(!isset($tmp['sum'],$tmp['asset'])){
+            $tmp = load_tmp_json('san_'.$chat_id, ['sum','asset']);
+            if(empty($tmp)){
                 $response = array(
                     'chat_id' => $chat_id,
                     'text' => "❌ОШИБКА! Данные не найдены. Повтори попытку.",
@@ -300,9 +300,9 @@ else{
         elseif( preg_match("/CREF\|/", $data['callback_query']['data'])){
             delMessage("", $data['callback_query']['message']['message_id']);
             $p = explode("|", $data['callback_query']['data']);
-            $tmpSan = load_tmp_json('san_'.$chat_id);
-            $tmpBal = load_tmp_json($chat_id);
-            if(!isset($tmpSan['sum'],$tmpSan['asset']) || !isset($tmpBal['availableBalance'])){
+            $tmpSan = load_tmp_json('san_'.$chat_id, ['sum','asset']);
+            $tmpBal = load_tmp_json($chat_id, ['availableBalance']);
+            if(empty($tmpSan) || empty($tmpBal)){
                 $response = array(
                     'chat_id' => $chat_id,
                     'text' => "❌ОШИБКА! Данные не найдены. Повтори попытку.",

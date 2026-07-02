@@ -81,12 +81,17 @@ function chequeHandleSum($data){
     $availableBalance = $r[2];
 
     if($sum <= 0) {
-        $response = array(
-            'chat_id' => $chat_id,
-            'text' => "❌ОШИБКА! Ввведенное значение не похоже на сумму. Повтори попытку.",
-            'parse_mode' => 'HTML');
-        sendit($response, 'sendMessage');
-    }
+        $response = array(        $tmp = load_tmp_json('san_'.$chat_id, ['sum','asset']);
+        if(empty($tmp)){
+    $tmp = load_tmp_json($chat_id, ['availableBalance']);
+    if(empty($tmp)){
+        clean_temp_sess();
+        @unlink(TMP_DIR."/$chat_id.json");
+        @unlink(TMP_DIR."/san_$chat_id.json");
+        #unlink(TMP_DIR."/chno_$chat_id.json");
+        #$tofile = "<?php \$chequeno = $chequeno;";
+        #file_put_contents(TMP_DIR."/chno_$chat_id.json", $tofile);
+
     elseif($sum > $availableBalance){
         $response = array(
             'chat_id' => $chat_id,
@@ -164,13 +169,18 @@ function chequeSetNumActivations($sum, $asset, $availableBalance, $ref){
         $arInfo["inline_keyboard"][0][0]["callback_data"] = "CNUM|1";
         $arInfo["inline_keyboard"][0][0]["text"] = "Пропустить";
         $arInfo["inline_keyboard"][0][1]["callback_data"] = "CNUM|$maxnum";
-        $arInfo["inline_keyboard"][0][1]["text"] = "Макс.кол-во - $maxnum";
-        $arInfo["inline_keyboard"][1][0]["callback_data"] = $num;
-        $arInfo["inline_keyboard"][1][0]["text"] = "⏪ Изменить сумму";
-        send($chat_id, "По желанию укажи количество активаций чека, чтобы создать мультичек (до $maxnum активаций)", $arInfo);
-    }
-}
-function chequeHandleNum($data, $row5){
+        $arInfo["inline_keyboard"][0][1]["text"] = "Макс.кол-во - $maxnum";    ensure_tmp_dir(TMP_DIR);
+    $filename = TMP_DIR."/".$chat_id."_".$time.".jpg";
+    file_put_contents($filename, $img);
+
+    $response = array(
+        'chat_id' => $chat_id,
+        'caption' => '',
+        'photo' => new CURLFile($filename),
+        'parse_mode' => 'HTML'
+    );
+    sendit($response, 'sendPhoto');
+    unlink($filename);
     global $chat_id, $link;
 
     $num = intval(trim($data['message']['text']));
@@ -429,7 +439,8 @@ function chequeWait4Pass($rowid){
     send($chat_id, 'Введи пароль к чеку (не более 64 символов):', $arInfo);
 }
 function chequeSavePass($data, $row){
-    global $chat_id, $link;
+        $refData = load_tmp_json('chqref'.$chat_id, ['referral']);
+        if(isset($refData['referral'])) $referral = $refData['referral'];
 
     $chequepass = trim($data['message']['text']);
     $p = explode("|", $row->action);
@@ -476,7 +487,7 @@ function chequeChangeRef($rowid){
     $arInfo["inline_keyboard"][0][2]["callback_data"] = "CRF|50|$rowid";
     $arInfo["inline_keyboard"][0][2]["text"] = "50%".$ql;
     $ql = ($row->percent == 75) ? "🔸" : "";
-    $arInfo["inline_keyboard"][0][3]["callback_data"] = "CRF|75|$rowid";
+    $arInfo["inline_keyboard"][0][3]["callback_data"] = "CRF|75|$rowid";        @unlink(TMP_DIR.'/chqref'.$chat_id.'.json');
     $arInfo["inline_keyboard"][0][3]["text"] = "75%".$ql;
     $ql = ($row->percent == 100) ? "🔸" : "";
     $arInfo["inline_keyboard"][0][4]["callback_data"] = "CRF|100|$rowid";
