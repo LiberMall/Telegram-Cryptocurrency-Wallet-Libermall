@@ -23,6 +23,7 @@ include 'func_cheque.php';
 include 'func_staking.php';
 include 'func_exchange.php';
 include 'func_exchange2.php';
+include 'func_lang.php';
 
 #################################
 
@@ -56,11 +57,13 @@ $time = time();
 	$str2select = "SELECT * FROM `users` WHERE `chatid`='$chat_id'";
 	$result = mysqli_query($link, $str2select);
 	if(mysqli_num_rows($result) == 0){
-		$str2ins = "INSERT INTO `users` (`chatid`,`username`,`tgr_ton`,`tgr_bep20`,`ton_ton`,`tgr_ton_full`,`ton_ton_full`,`ref`,`phone`) VALUES ('$chat_id','$uname', '0', '0', '0', '0', '0', '0', '0')";
-		mysqli_query($link, $str2ins);
-		$result = mysqli_query($link, $str2select);
-	}
-	$row = @mysqli_fetch_object($result);
+                $str2ins = "INSERT INTO `users` (`chatid`,`username`,`tgr_ton`,`tgr_bep20`,`ton_ton`,`tgr_ton_full`,`ton_ton_full`,`ref`,`phone`,`lang`) VALUES ('$chat_id','$uname', '0', '0', '0', '0', '0', '0', '0','en')";
+                mysqli_query($link, $str2ins);
+                $result = mysqli_query($link, $str2select);
+        }
+        $row = @mysqli_fetch_object($result);
+        loadTranslations();
+        $user_lang = getUserLang($chat_id);
 
 // Register new user in DB
 
@@ -104,7 +107,7 @@ $r = saveReferral($data);
 if($r == true) mainMenu();
 
 }
-elseif( preg_match("/В главное меню/", $data['message']['text'] )){
+elseif( $data['message']['text'] == t('menu_back') ){
     delMessage("", $data['callback_query']['message']['message_id']);
     mainMenu();
 }
@@ -138,6 +141,12 @@ elseif( preg_match("/\/exchange/", $data['message']['text'] )){
     exchange2Start();
 
 }
+elseif( preg_match("/\/language/", $data['message']['text'] )){
+
+    delMessage2("", $data['callback_query']['message']['message_id']);
+    languageMenu();
+
+}
 elseif( preg_match("/\/help/i", $data['message']['text'] )){
 
 }
@@ -151,8 +160,17 @@ else{
 
   if(isset($data['callback_query']['data']) && $data['callback_query']['data'] != ''){
 
+                if(preg_match('/^setlang_/', $data['callback_query']['data'])){
+                        $lang = substr($data['callback_query']['data'],8);
+                        setUserLang($chat_id, $lang);
+                        $user_lang = $lang;
+                        delMessage("", $data['callback_query']['message']['message_id']);
+                        send($chat_id, t('language_saved'), NULL);
+                        mainMenu();
+                }
+
 // Wallet
-		if( $data['callback_query']['data'] == 1 || $data['callback_query']['data'] == 25 || $data['callback_query']['data'] == 34 ){
+                elseif( $data['callback_query']['data'] == 1 || $data['callback_query']['data'] == 25 || $data['callback_query']['data'] == 34 ){
       delMessage2("", $data['callback_query']['message']['message_id']);
       walletMenu();
     }

@@ -14,7 +14,7 @@ function stakingMenu(){
         $i = 2;
     }
     $arInfo["inline_keyboard"][$i][0]["callback_data"] = 15;
-    $arInfo["inline_keyboard"][$i][0]["text"] = "⏪ Назад на главную";
+    $arInfo["inline_keyboard"][$i][0]["text"] = t('back_to_main');
     send($chat_id, "Получайте вознаграждение, размещая в стейкинге цифровые активы.", $arInfo);
 }
 function stakingChooseAsset(){
